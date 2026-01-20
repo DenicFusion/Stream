@@ -22,7 +22,7 @@ export const Hero: React.FC<{ onSignup: () => void }> = ({ onSignup }) => {
         
         <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight mb-8 leading-tight">
           Life in Motion. <br />
-          <span className="text-stream-green">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-stream-green to-emerald-400">
             Income in Continuous Flow.
           </span>
         </h1>
@@ -32,11 +32,36 @@ export const Hero: React.FC<{ onSignup: () => void }> = ({ onSignup }) => {
           Welcome to the future. Welcome to Stream Africa.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-5 w-full sm:w-auto">
-          <Button onClick={onSignup} className="text-lg px-10 py-4 shadow-emerald-500/20">
-            Start Earning Now
+        {/* Dynamic Buttons Container: Centered and sized to content (not block/stretched) */}
+        <div className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto items-center justify-center">
+          
+          {/* Start Earning Now - Dynamic Gradient & Shimmer */}
+          <Button 
+            onClick={onSignup} 
+            className="group relative !rounded-full !px-10 !py-4 text-lg overflow-hidden !bg-transparent !shadow-none ring-1 ring-white/10 w-auto min-w-[200px]"
+          >
+            {/* Gradient Background */}
+            <div className="absolute inset-0 bg-gradient-to-r from-stream-green to-emerald-600 transition-all duration-300 group-hover:scale-105"></div>
+            
+            {/* Continuous Shimmer Effect */}
+            <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/25 to-transparent z-10"></div>
+            
+            {/* Button Text & Icon */}
+            <span className="relative z-20 flex items-center justify-center gap-2 font-bold text-white">
+              Start Earning Now
+              <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+            </span>
+            
+            {/* Glow on hover */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-50 transition-opacity duration-300 bg-emerald-400 blur-xl -z-10"></div>
           </Button>
-          <Button variant="outline" onClick={() => document.getElementById('about')?.scrollIntoView({behavior: 'smooth'})} className="text-lg px-10 py-4">
+
+          {/* Learn More - Dynamic Glassmorphism */}
+          <Button 
+            variant="outline" 
+            onClick={() => document.getElementById('about')?.scrollIntoView({behavior: 'smooth'})} 
+            className="!rounded-full !px-10 !py-4 text-lg !border-white/20 !text-white hover:!bg-white/10 hover:!border-white/40 backdrop-blur-md transition-all duration-300 w-auto min-w-[200px]"
+          >
             Learn More
           </Button>
         </div>
