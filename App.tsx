@@ -14,7 +14,7 @@ import { Button } from './components/Button';
 
 // CONFIGURATION FOR REDIRECT
 const REDIRECT_CONFIG = {
-  useWhatsApp: false, // Set to true to use WhatsApp, false for Telegram
+  useWhatsApp: true, // Set to true to use WhatsApp, false for Telegram
   whatsAppNumber: "2349012345678", // Your WhatsApp number without '+'
   telegramUrl: "https://t.me/jeffry311" // Your Telegram Username/Channel link
 };
@@ -147,7 +147,7 @@ const App: React.FC = () => {
                     fullWidth 
                     className="relative text-lg py-4 !bg-emerald-500 hover:!bg-emerald-400 !shadow-[0_0_20px_rgba(16,185,129,0.6)] !border-none"
                 >
-                  {REDIRECT_CONFIG.useWhatsApp ? 'Complete Registration on WhatsApp' : 'Join Telegram Channel'}
+                  {REDIRECT_CONFIG.useWhatsApp ? 'Complete Registration on WhatsApp' : 'Complete Registration on Telegram'}
                 </Button>
               </div>
 
