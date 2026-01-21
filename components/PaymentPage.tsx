@@ -87,13 +87,13 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
 
             <div className="space-y-3">
                 <Button onClick={handlePayment} fullWidth className="bg-emerald-600 hover:bg-emerald-700 text-white py-4 text-lg">
-                    Pay Now with Paystack
+                    Pay Now
                 </Button>
                 <button 
                     onClick={onBack}
                     className="w-full py-3 text-gray-500 font-medium hover:text-gray-800 transition-colors"
                 >
-                    Cancel and Go Back
+                    Return
                 </button>
             </div>
             
