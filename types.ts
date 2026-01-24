@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type ViewState = 'HOME' | 'SIGNUP' | 'PAYMENT' | 'SUCCESS';
+export type ViewState = 'HOME' | 'SIGNUP' | 'PAYMENT' | 'SUCCESS' | 'DASHBOARD';
 
 export interface UserData {
   name: string;
@@ -8,6 +8,7 @@ export interface UserData {
   email: string;
   phone: string;
   password: string;
+  isActivated?: boolean; // New field to track activation status
 }
 
 export interface FeatureProps {

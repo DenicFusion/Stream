@@ -26,10 +26,20 @@
               shimmer: {
                 '0%': { transform: 'translateX(-100%)' },
                 '100%': { transform: 'translateX(100%)' }
+              },
+              slideDown: {
+                '0%': { transform: 'translate(-50%, -150%)', opacity: '0' },
+                '100%': { transform: 'translate(-50%, 0)', opacity: '1' }
+              },
+              slideUp: {
+                '0%': { transform: 'translate(-50%, 0)', opacity: '1' },
+                '100%': { transform: 'translate(-50%, -150%)', opacity: '0' }
               }
             },
             animation: {
               shimmer: 'shimmer 2s infinite',
+              slideDown: 'slideDown 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              slideUp: 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
             }
           }
         }
@@ -107,7 +117,7 @@
         color: #f8fafc;
       }
     </style>
-  <script type="importmap">
+<script type="importmap">
 {
   "imports": {
     "react": "https://esm.sh/react@^19.2.3",
