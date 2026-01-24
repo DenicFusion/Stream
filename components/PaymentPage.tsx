@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from './Button';
 import { UserData } from '../types';
-import { PAYMENT_MODE, OPAY_PUBLIC_KEY, OPAY_MERCHANT_ID, BANK_DETAILS } from '../config';
+import { PAYMENT_MODE, OPAY_PUBLIC_KEY, OPAY_MERCHANT_ID, OPAY_API_URL, BANK_DETAILS } from '../config';
 
 interface PaymentPageProps {
   userData: UserData;
@@ -61,6 +61,12 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
   };
 
   const handleOpayCheckout = async () => {
+      // Validation Check
+      if (OPAY_MERCHANT_ID === "YOUR_MERCHANT_ID") {
+          alert("Integration Error: OPay Merchant ID is missing in configuration.\nPlease update config.ts with your Merchant ID.");
+          return;
+      }
+
       setLoadingOpay(true);
       try {
         const payload = {
@@ -70,19 +76,23 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
             total: AMOUNT_KOBO.toString(),
             currency: "NGN"
           },
-          returnUrl: window.location.origin, // Simple redirect back to app, state handling will check session/ref if implemented
-          callbackUrl: "https://your-site.com/api/opay-webhook",
+          returnUrl: window.location.origin, // Returns to the app after payment
+          callbackUrl: "https://your-site.com/api/opay-webhook", // Webhook for server-side confirmation
           userInfo: {
             userEmail: userData.email,
-            userName: userData.name
+            userName: userData.name,
+            userMobile: userData.phone
           },
           product: {
             name: "Stream Africa Activation",
             description: "Lifetime Access Activation Fee"
-          }
+          },
+          payMethod: "BankCard" // Optional: Prefill or restrict method
         };
 
-        const response = await fetch("https://api.opaycheckout.com/api/v1/international/cashier/create", {
+        console.log("Initializing OPay transaction...");
+
+        const response = await fetch(OPAY_API_URL, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -93,17 +103,20 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
         });
 
         const data = await response.json();
+        console.log("OPay Response:", data);
         
         if (data.code === "00000" && data.data && data.data.cashierUrl) {
            // Redirect user to OPay Cashier
            window.location.href = data.data.cashierUrl;
         } else {
-           console.error("OPay Error:", data);
-           alert(`OPay Error: ${data.message || 'Unknown error occurred'}`);
+           // Handle API errors
+           console.error("OPay Error Code:", data.code, data.message);
+           alert(`OPay Initialization Failed: ${data.message || 'Unknown error'}`);
         }
       } catch (error) {
         console.error("OPay Request Failed:", error);
-        alert("Failed to connect to OPay. Please check your internet connection or try another method.");
+        // Fallback or CORS explanation
+        alert("Failed to connect to OPay. This might be a Network or CORS issue. \n\nIf testing locally, ensure the OPay Sandbox API allows direct browser calls, or use a backend proxy.");
       } finally {
         setLoadingOpay(false);
       }
