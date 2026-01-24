@@ -1,7 +1,7 @@
 // GLOBAL CONFIGURATION
 
 // Payment Modes: 'TRUE' (Paystack), 'FALSE' (Transfer), 'NEUTRAL' (Transfer + Opay)
-export const PAYMENT_MODE: 'TRUE' | 'FALSE' | 'NEUTRAL' = 'TRUE';
+export const PAYMENT_MODE: 'TRUE' | 'FALSE' | 'NEUTRAL' = 'false';
 
 // If true, user goes to Dashboard (Demo Mode) after signup. 
 // If false, user goes directly to Payment page.
@@ -26,9 +26,9 @@ export const BANK_DETAILS = [
   },
   // Add second account here if needed for dual accounts
   {
-    bankName: "Moniepoint MFB", 
-    accountNumber: "7010661707",
-    accountName: "Chimezie David Igwe (Backup)"
+    bankName: "Opay Bank", 
+    accountNumber: "8032842129",
+    accountName: "Chimezie David Igwe"
   }
 ];
 
