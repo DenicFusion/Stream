@@ -61,12 +61,6 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
   };
 
   const handleOpayCheckout = async () => {
-      // Validation Check
-      if (OPAY_MERCHANT_ID === "YOUR_MERCHANT_ID") {
-          alert("Integration Error: OPay Merchant ID is missing in configuration.\nPlease update config.ts with your Merchant ID.");
-          return;
-      }
-
       setLoadingOpay(true);
       try {
         const payload = {

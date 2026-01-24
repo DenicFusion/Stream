@@ -11,7 +11,7 @@ export const SHOW_DASHBOARD_BEFORE_PAYMENT = true;
 // TEST/SANDBOX KEY provided
 export const OPAY_PUBLIC_KEY = "OPAYPUB17691774750010.6524153887502064";
 
-// IMPORTANT: Replace "YOUR_MERCHANT_ID" with your actual OPay Merchant ID from your dashboard.
+// IMPORTANT: Your actual OPay Merchant ID
 export const OPAY_MERCHANT_ID = "281826012352775"; 
 
 // Using Sandbox URL for testing since we are using a Test Key
