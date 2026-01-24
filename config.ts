@@ -28,7 +28,7 @@ export const BANK_DETAILS = [
   {
     bankName: "Moniepoint MFB", 
     accountNumber: "7010661707",
-    accountName: "Chimezie David Igwe"
+    accountName: "Chimezie David Igwe (Backup)"
   }
 ];
 
