@@ -42,6 +42,7 @@ const FeatureCard: React.FC<FeatureProps> = ({ title, description, price, icon, 
 };
 
 export const Features: React.FC = () => {
+  const isBlue = THEME_COLOR === 'BLUE';
   const features: FeatureProps[] = [
     {
       title: "Audio Collaboration",
@@ -91,12 +92,61 @@ export const Features: React.FC = () => {
   return (
     <section id="features" className="py-24 bg-stream-dark relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-20">
+        <div className="text-center mb-16">
           <h2 className="text-4xl font-extrabold text-white mb-6">Earning Ecosystem</h2>
-          <div className={`w-24 h-1 ${THEME_COLOR === 'BLUE' ? 'bg-sky-500' : 'bg-stream-green'} mx-auto rounded-full mb-6`}></div>
+          <div className={`w-24 h-1 ${isBlue ? 'bg-sky-500' : 'bg-stream-green'} mx-auto rounded-full mb-6`}></div>
           <p className="text-gray-400 text-xl max-w-2xl mx-auto">
             A comprehensive suite of tools designed to monetize digital engagement through multiple high-value streams.
           </p>
+        </div>
+
+        {/* Access Fee & Benefits Card */}
+        <div className="mb-24 relative z-10 max-w-4xl mx-auto">
+          <div className={`rounded-3xl p-0.5 bg-gradient-to-r ${isBlue ? 'from-sky-500 to-blue-600' : 'from-stream-green to-emerald-600'}`}>
+            <div className="bg-[#0f172a] rounded-[1.4rem] p-8 md:p-10 grid md:grid-cols-2 gap-10 items-center">
+              
+              {/* Access Fee Section */}
+              <div className="text-center md:text-left space-y-4">
+                <div className={`inline-block px-3 py-1 rounded-full border ${isBlue ? 'border-sky-500/30 bg-sky-500/10 text-sky-400' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'} text-xs font-bold uppercase tracking-widest`}>
+                  Membership Pass
+                </div>
+                <div>
+                    <h3 className="text-gray-300 font-medium text-sm uppercase tracking-wider mb-2">One-Time Access Fee</h3>
+                    <div className="flex items-baseline justify-center md:justify-start gap-2">
+                        <span className="text-5xl md:text-6xl font-extrabold text-white">₦12,000</span>
+                        <span className="text-xl text-gray-500 font-medium">/ Lifetime</span>
+                    </div>
+                </div>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                   Unlock full access to the streaming ecosystem. No monthly subscriptions, no hidden charges. Just one fee for a lifetime of earning.
+                </p>
+              </div>
+
+              {/* Benefits List */}
+              <div className={`border-t md:border-t-0 md:border-l ${isBlue ? 'border-sky-500/20' : 'border-emerald-500/20'} pt-8 md:pt-0 md:pl-10`}>
+                <h3 className="text-white font-bold text-lg mb-6">What You Get</h3>
+                <ul className="space-y-4">
+                  {[
+                    "Lifetime Platform Access",
+                    "Unlock All Income Channels",
+                    "Daily & Weekly Withdrawals",
+                    "Access to Stream Academy",
+                    "24/7 Priority Support"
+                  ].map((benefit, i) => (
+                    <li key={i} className="flex items-start gap-3 text-gray-300 group">
+                       <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${isBlue ? 'bg-sky-500/20 text-sky-400' : 'bg-emerald-500/20 text-stream-green'}`}>
+                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                         </svg>
+                       </div>
+                       <span className="text-sm font-medium group-hover:text-white transition-colors">{benefit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+            </div>
+          </div>
         </div>
         
         <div className="space-y-4">
