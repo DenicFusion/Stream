@@ -10,6 +10,9 @@ export const PAYMENT_MODE: 'TRUE' | 'FALSE' | 'NEUTRAL' = 'NEUTRAL';
 // If false, user goes directly to Payment page.
 export const SHOW_DASHBOARD_BEFORE_PAYMENT = true;
 
+// Payment Timer Duration (in minutes) for Manual Transfer
+export const PAYMENT_TIMER_MINUTES = 30;
+
 // Opay Configuration
 // TEST/SANDBOX KEY provided
 export const OPAY_PUBLIC_KEY = "OPAYPUB17691774750010.6524153887502064";

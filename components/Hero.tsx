@@ -31,8 +31,8 @@ export const Hero: React.FC<{ onSignup: () => void }> = ({ onSignup }) => {
         </h1>
         
         <p className="mt-2 max-w-2xl text-xl text-gray-400 mb-10 leading-relaxed">
-          This is more than a brand. This is the movement redefining the digital economy in 2026. 
-          Welcome to the future. Welcome to Stream Africa.
+          This is more than a brand. This is the ultimate <strong>streaming platform</strong> redefining the digital economy in 2026. 
+          Stream audio, video, and live content to earn. Welcome to the future of <strong>streaming</strong>.
         </p>
 
         {/* Dynamic Buttons Container */}
@@ -51,7 +51,7 @@ export const Hero: React.FC<{ onSignup: () => void }> = ({ onSignup }) => {
             
             {/* Button Text & Icon */}
             <span className="relative z-20 flex items-center justify-center gap-2 font-bold text-white">
-              Start Earning Now
+              Start Streaming Now
               <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
             </span>
             
@@ -121,4 +121,4 @@ export const Hero: React.FC<{ onSignup: () => void }> = ({ onSignup }) => {
       </div>
     </div>
   );
-};
+}

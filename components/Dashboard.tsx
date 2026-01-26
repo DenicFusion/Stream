@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserData } from '../types';
 import { Button } from './Button';
 import { NotificationToast } from './NotificationToast';
@@ -12,8 +12,20 @@ interface DashboardProps {
 export const Dashboard: React.FC<DashboardProps> = ({ userData, onActivate }) => {
   const [activeTab, setActiveTab] = useState<'HOME' | 'EARN' | 'BAZAAR' | 'ACADEMY' | 'PROFILE'>('HOME');
   const [showActivateModal, setShowActivateModal] = useState(false);
+  const [isForced, setIsForced] = useState(false);
   const isActivated = userData.isActivated || false;
   const isBlue = THEME_COLOR === 'BLUE';
+
+  // Auto-trigger Activation Modal after 5 seconds if not activated
+  useEffect(() => {
+    if (!isActivated) {
+      const timer = setTimeout(() => {
+        setShowActivateModal(true);
+        setIsForced(true); // Lock the modal so it cannot be closed
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [isActivated]);
 
   const handleProtectedAction = () => {
     if (!isActivated) {
@@ -150,9 +162,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ userData, onActivate }) =>
       {/* Activation Modal */}
       {showActivateModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center px-4">
-           <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowActivateModal(false)}></div>
+           {/* Backdrop: Lighter (60%) to show content behind, only clickable if NOT forced */}
+           <div 
+             className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-all duration-500" 
+             onClick={() => !isForced && setShowActivateModal(false)}
+           ></div>
+           
            <div className={`bg-stream-card w-full max-w-sm rounded-2xl p-6 border ${isBlue ? 'border-sky-500/30' : 'border-emerald-500/30'} shadow-2xl relative animate-in fade-in zoom-in duration-300`}>
-              <button onClick={() => setShowActivateModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white">✕</button>
+              {/* Close Button: Hidden if forced */}
+              {!isForced && (
+                <button onClick={() => setShowActivateModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white">✕</button>
+              )}
+              
               <div className={`w-16 h-16 ${isBlue ? 'bg-sky-500/10 border-sky-500/20' : 'bg-emerald-500/10 border-emerald-500/20'} rounded-full flex items-center justify-center mx-auto mb-4 border`}>
                  <svg className={`w-8 h-8 ${isBlue ? 'text-sky-500' : 'text-emerald-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
               </div>
