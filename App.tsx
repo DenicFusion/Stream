@@ -9,6 +9,7 @@ import { Footer } from './components/Footer';
 import { SignupForm } from './components/SignupForm';
 import { PaymentPage } from './components/PaymentPage';
 import { ScrollToTop } from './components/ScrollToTop';
+import { ContactFab } from './components/ContactFab';
 import { Dashboard } from './components/Dashboard';
 import { NotificationToast } from './components/NotificationToast';
 import { ViewState, UserData } from './types';
@@ -141,6 +142,7 @@ const App: React.FC = () => {
             <FAQ />
             <Footer />
             <ScrollToTop />
+            <ContactFab />
           </>
         );
       case 'SIGNUP':

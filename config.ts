@@ -13,6 +13,14 @@ export const SHOW_DASHBOARD_BEFORE_PAYMENT = true;
 // Payment Timer Duration (in minutes) for Manual Transfer
 export const PAYMENT_TIMER_MINUTES = 30;
 
+// Admin Support Configuration
+export const SUPPORT_CONTACT = {
+  showOnHome: true, // Show FAB on homepage
+  method: 'WHATSAPP' as 'WHATSAPP' | 'TELEGRAM', // Toggle between 'WHATSAPP' and 'TELEGRAM'
+  whatsappNumber: "2349012345678", 
+  telegramUrl: "https://t.me/streamafrica_official"
+};
+
 // Opay Configuration
 // TEST/SANDBOX KEY provided
 export const OPAY_PUBLIC_KEY = "OPAYPUB17691774750010.6524153887502064";
