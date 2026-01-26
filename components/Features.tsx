@@ -100,32 +100,32 @@ export const Features: React.FC = () => {
           </p>
         </div>
 
-        {/* Access Fee & Benefits Card */}
-        <div className="mb-24 relative z-10 max-w-4xl mx-auto">
+        {/* Access Fee & Benefits Card - Resized to Medium (max-w-3xl) */}
+        <div className="mb-24 relative z-10 max-w-3xl mx-auto">
           <div className={`rounded-3xl p-0.5 bg-gradient-to-r ${isBlue ? 'from-sky-500 to-blue-600' : 'from-stream-green to-emerald-600'}`}>
-            <div className="bg-[#0f172a] rounded-[1.4rem] p-8 md:p-10 grid md:grid-cols-2 gap-10 items-center">
+            <div className="bg-[#0f172a] rounded-[1.4rem] p-6 md:p-8 grid md:grid-cols-2 gap-8 items-center">
               
               {/* Access Fee Section */}
-              <div className="text-center md:text-left space-y-4">
+              <div className="text-center md:text-left space-y-3">
                 <div className={`inline-block px-3 py-1 rounded-full border ${isBlue ? 'border-sky-500/30 bg-sky-500/10 text-sky-400' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'} text-xs font-bold uppercase tracking-widest`}>
                   Membership Pass
                 </div>
                 <div>
-                    <h3 className="text-gray-300 font-medium text-sm uppercase tracking-wider mb-2">One-Time Access Fee</h3>
+                    <h3 className="text-gray-300 font-medium text-xs uppercase tracking-wider mb-1">One-Time Access Fee</h3>
                     <div className="flex items-baseline justify-center md:justify-start gap-2">
-                        <span className="text-5xl md:text-6xl font-extrabold text-white">₦12,000</span>
-                        <span className="text-xl text-gray-500 font-medium">/ Lifetime</span>
+                        <span className="text-4xl md:text-5xl font-extrabold text-white">₦12,000</span>
+                        <span className="text-lg text-gray-500 font-medium">/ Lifetime</span>
                     </div>
                 </div>
-                <p className="text-gray-400 text-sm leading-relaxed">
-                   Unlock full access to the streaming ecosystem. No monthly subscriptions, no hidden charges. Just one fee for a lifetime of earning.
+                <p className="text-gray-400 text-sm leading-relaxed font-medium">
+                   Unlock full access to the streaming ecosystem!!!
                 </p>
               </div>
 
               {/* Benefits List */}
-              <div className={`border-t md:border-t-0 md:border-l ${isBlue ? 'border-sky-500/20' : 'border-emerald-500/20'} pt-8 md:pt-0 md:pl-10`}>
-                <h3 className="text-white font-bold text-lg mb-6">What You Get</h3>
-                <ul className="space-y-4">
+              <div className={`border-t md:border-t-0 md:border-l ${isBlue ? 'border-sky-500/20' : 'border-emerald-500/20'} pt-6 md:pt-0 md:pl-8`}>
+                <h3 className="text-white font-bold text-base mb-4">What You Get</h3>
+                <ul className="space-y-3">
                   {[
                     "Lifetime Platform Access",
                     "Unlock All Income Channels",
@@ -133,9 +133,9 @@ export const Features: React.FC = () => {
                     "Access to Stream Academy",
                     "24/7 Priority Support"
                   ].map((benefit, i) => (
-                    <li key={i} className="flex items-start gap-3 text-gray-300 group">
-                       <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${isBlue ? 'bg-sky-500/20 text-sky-400' : 'bg-emerald-500/20 text-stream-green'}`}>
-                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <li key={i} className="flex items-start gap-2.5 text-gray-300 group">
+                       <div className={`mt-0.5 w-4 h-4 rounded-full flex items-center justify-center ${isBlue ? 'bg-sky-500/20 text-sky-400' : 'bg-emerald-500/20 text-stream-green'}`}>
+                         <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
                          </svg>
                        </div>
