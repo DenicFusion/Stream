@@ -224,7 +224,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
         // Use process.env.API_KEY explicitly
         const apiKey = process.env.API_KEY;
         if (!apiKey) {
-            throw new Error("System Error: API Key Missing.");
+            throw new Error("API Key is missing from configuration. Please check Vercel settings.");
         }
 
         // Initialize Gemini Client
