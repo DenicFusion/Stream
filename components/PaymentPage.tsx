@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from './Button';
 import { UserData } from '../types';
-import { PAYMENT_MODE, OPAY_PUBLIC_KEY, OPAY_MERCHANT_ID, OPAY_API_URL, BANK_DETAILS, THEME_COLOR, PAYMENT_TIMER_MINUTES, SUPPORT_CONTACT } from '../config';
+import { PAYMENT_MODE, OPAY_PUBLIC_KEY, OPAY_MERCHANT_ID, OPAY_API_URL, BANK_DETAILS, THEME_COLOR, PAYMENT_TIMER_MINUTES, SUPPORT_CONTACT, GEMINI_API_KEY } from '../config';
 import { CustomAlert } from './CustomAlert';
+import { GoogleGenAI } from "@google/genai";
 
 interface PaymentPageProps {
   userData: UserData;
@@ -33,6 +34,14 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
   // Timer State
   const [timeLeft, setTimeLeft] = useState(PAYMENT_TIMER_MINUTES * 60);
 
+  // AI Verification State (Image Based)
+  const [proofImage, setProofImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [aiVerified, setAiVerified] = useState(false);
+  const [aiResponseMsg, setAiResponseMsg] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const isBlue = THEME_COLOR === 'BLUE';
 
   const showAlert = (title: string, message: string, type: 'info'|'error'|'success' = 'info') => {
@@ -51,17 +60,14 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
             }, 1000);
         } else {
             // Timer expired
-            showAlert("Session Expired", "Your payment session has timed out. Please try again.", "error");
-            setTimeout(() => {
-                onBack();
-            }, 2500);
+            showAlert("Session Expired", "Your payment session has timed out. Please refresh to try again.", "error");
         }
     }
 
     return () => {
         if (timerId) clearInterval(timerId);
     };
-  }, [activeTab, timeLeft, onBack]);
+  }, [activeTab, timeLeft]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -94,7 +100,10 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
     }
   };
 
-  const copyToClipboard = (text: string, label: string) => {
+  const copyToClipboard = (text: string, label: string, index: number) => {
+    // AUTO-SELECT LOGIC: When copying, automatically select this bank
+    setSelectedBankIndex(index);
+    
     navigator.clipboard.writeText(text);
     setCopied(label);
     setTimeout(() => setCopied(null), 2000);
@@ -149,11 +158,151 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
       }
   };
 
+  // --- IMAGE HANDLING ---
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setProofImage(file);
+      setImagePreview(URL.createObjectURL(file));
+      setAiVerified(false);
+      setAiResponseMsg('');
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      setProofImage(file);
+      setImagePreview(URL.createObjectURL(file));
+      setAiVerified(false);
+      setAiResponseMsg('');
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  const verifyTransactionWithGemini = async () => {
+    if (!proofImage) {
+        showAlert("Proof Required", "Please upload or drop a screenshot of your payment receipt.", "error");
+        return;
+    }
+
+    if (timeLeft <= 0) {
+        showAlert("Session Expired", "Payment session expired. Please restart the process.", "error");
+        return;
+    }
+
+    setIsVerifying(true);
+    setAiResponseMsg('');
+
+    try {
+        const fullBase64 = await fileToBase64(proofImage);
+        
+        // Anti-Fraud: Hash the image base64 (first 100 chars) to prevent reusing exact same file
+        const usedProofs = JSON.parse(localStorage.getItem('stream_used_proofs') || '[]');
+        const proofHash = btoa(fullBase64.slice(0, 100) + proofImage.name + proofImage.size);
+        
+        if (usedProofs.includes(proofHash)) {
+             throw new Error("Fraud Detected: This specific screenshot has already been used.");
+        }
+
+        const selectedBank = BANK_DETAILS[selectedBankIndex];
+        
+        if (!GEMINI_API_KEY) {
+            throw new Error("System Error: Gemini API Key Missing.");
+        }
+
+        // Initialize Gemini Client
+        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+        
+        // Prepare Image Data (Strip prefix)
+        const match = fullBase64.match(/^data:(.+);base64,(.+)$/);
+        const mimeType = match ? match[1] : 'image/jpeg';
+        const base64Data = match ? match[2] : fullBase64.split(',')[1];
+
+        // Prepare Prompt
+        const promptText = `Analyze this payment receipt image carefully.
+        I am expecting a transfer of roughly 12,000 NGN.
+        It should be sent to "${selectedBank.bankName}" or an account ending in that bank's number if visible.
+        
+        Task:
+        1. Look for the Amount. Is it approx 12,000?
+        2. Look for "Successful", "Success", "Sent", or "Approved".
+        3. Look for the Destination Bank or Account Name matching "${selectedBank.bankName}" or "${selectedBank.accountName}".
+        
+        Return ONLY a JSON object with this format:
+        { "verified": boolean, "reason": "short explanation" }`;
+
+        // Call Gemini Model
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: {
+                parts: [
+                    {
+                        inlineData: {
+                            mimeType: mimeType,
+                            data: base64Data
+                        }
+                    },
+                    {
+                        text: promptText
+                    }
+                ]
+            },
+            config: {
+                responseMimeType: "application/json" 
+            }
+        });
+
+        const resultText = response.text || "{}";
+        const result = JSON.parse(resultText);
+
+        if (result.verified) {
+            setAiVerified(true);
+            setAiResponseMsg("Payment Verified Successfully ✅");
+            localStorage.setItem('stream_used_proofs', JSON.stringify([...usedProofs, proofHash]));
+        } else {
+            // STRICT MODE: Fail if AI says no
+            setAiVerified(false);
+            setAiResponseMsg(`Verification Failed: ${result.reason}`);
+            showAlert("Verification Failed", result.reason, "error");
+        }
+
+    } catch (error: any) {
+        console.error("Verification Error:", error);
+        
+        // STRICT MODE: No manual fallback.
+        setAiVerified(false);
+        setAiResponseMsg('Analysis Failed. Please try a clearer screenshot.');
+        showAlert("Verification Error", error.message || "Could not verify image. Please try again or contact support.", "error");
+    } finally {
+        setIsVerifying(false);
+    }
+  };
+
   const handleTransferDone = () => {
+      if (!aiVerified && GEMINI_API_KEY) {
+          showAlert("Verification Required", "Please upload proof and verify with AI first.", "error");
+          return;
+      }
+      
       const bank = BANK_DETAILS[selectedBankIndex];
       const bankInfo = `${bank.bankName} (${bank.accountNumber})`;
-      // For transfers, we send empty reference and full bank info
-      onSuccess('', bankInfo);
+      const refInfo = proofImage ? `Image: ${proofImage.name}` : 'Manual Transfer';
+      onSuccess(refInfo, bankInfo);
   };
 
   const handleContactSupport = () => {
@@ -246,7 +395,6 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
                         </span>
                     </div>
 
-                    {/* New Red Warning for OPay */}
                     <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded-r-md">
                         <div className="flex items-start">
                             <svg className="w-5 h-5 text-red-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -287,7 +435,11 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
                                     <div className="flex items-center gap-2">
                                         <p className={`font-mono text-xl font-bold ${selectedBankIndex === index ? 'text-stream-green' : 'text-gray-700'} tracking-wider`}>{bank.accountNumber}</p>
                                         <button 
-                                            onClick={(e) => { e.stopPropagation(); copyToClipboard(bank.accountNumber, `acc-${index}`); }}
+                                            onClick={(e) => { 
+                                                e.stopPropagation(); 
+                                                // Auto-select this bank when copy is clicked
+                                                copyToClipboard(bank.accountNumber, `acc-${index}`, index); 
+                                            }}
                                             className="p-1.5 bg-white rounded-md shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
                                         >
                                             {copied === `acc-${index}` ? (
@@ -308,12 +460,76 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
                     
                     <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3">
                          <p className="text-xs text-yellow-800 leading-relaxed">
-                             <strong>Notice:</strong> Please confirm you have sent ₦{AMOUNT_NAIRA.toLocaleString()} to <strong>{BANK_DETAILS[selectedBankIndex].bankName}</strong> before proceeding.
+                             <strong>Notice:</strong> Please confirm you have sent ₦{AMOUNT_NAIRA.toLocaleString()} to <strong>{BANK_DETAILS[selectedBankIndex].bankName}</strong> before uploading proof.
                          </p>
                     </div>
 
-                    <Button onClick={handleTransferDone} fullWidth className="py-4 text-lg">
-                        I Have Made The Transfer
+                    {/* AI Verification Section (Drag & Drop) */}
+                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 bg-gray-50 text-center relative transition-all hover:border-blue-400"
+                         onDragOver={handleDragOver}
+                         onDrop={handleDrop}>
+                        
+                        <h4 className="font-bold text-gray-700 mb-2 flex items-center justify-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                            AI Verification System
+                        </h4>
+                        
+                        {!imagePreview ? (
+                            <div className="flex flex-col items-center justify-center py-4 cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mb-3">
+                                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                </div>
+                                <p className="text-sm font-medium text-gray-600">Drag & Drop Screenshot here</p>
+                                <p className="text-xs text-gray-400 mt-1">or click to upload receipt</p>
+                            </div>
+                        ) : (
+                            <div className="relative rounded-lg overflow-hidden border border-gray-200">
+                                <img src={imagePreview} alt="Payment Proof" className="w-full h-auto max-h-48 object-cover opacity-80" />
+                                <button 
+                                    onClick={() => { setProofImage(null); setImagePreview(null); setAiVerified(false); }}
+                                    className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded-full hover:bg-black"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                                <div className="absolute bottom-0 w-full bg-black/60 text-white text-xs py-1">
+                                    {proofImage?.name}
+                                </div>
+                            </div>
+                        )}
+
+                        <input 
+                            type="file" 
+                            ref={fileInputRef} 
+                            onChange={handleFileSelect} 
+                            accept="image/*" 
+                            className="hidden" 
+                        />
+
+                        {aiResponseMsg && (
+                            <div className={`text-xs font-bold mt-3 p-2 rounded ${aiVerified ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                {aiResponseMsg}
+                            </div>
+                        )}
+
+                        <div className="mt-4">
+                            <Button 
+                                onClick={verifyTransactionWithGemini}
+                                fullWidth 
+                                className={`py-3 text-sm !bg-gray-800 hover:!bg-black`}
+                                disabled={isVerifying || aiVerified || timeLeft <= 0 || !proofImage}
+                            >
+                                {isVerifying ? 'Analyzing Receipt...' : aiVerified ? 'Verified Successfully' : 'Verify Proof with AI'}
+                            </Button>
+                        </div>
+                    </div>
+
+                    <Button 
+                        onClick={handleTransferDone} 
+                        fullWidth 
+                        className={`py-4 text-lg transition-all duration-300 ${!aiVerified ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+                        disabled={!aiVerified || timeLeft <= 0}
+                    >
+                        {aiVerified ? 'I Have Made The Transfer' : 'Verify Payment to Unlock'}
                     </Button>
 
                     {/* Contact Admin Link */}

@@ -21,6 +21,11 @@ export const SUPPORT_CONTACT = {
   telegramUrl: "https://t.me/streamafrica_official"
 };
 
+// Gemini AI Configuration for Payment Verification
+// SECURITY UPDATE: We now use an environment variable.
+// Do NOT paste the key here directly. Add VITE_GEMINI_API_KEY to your Vercel/Netlify dashboard.
+export const GEMINI_API_KEY = (import.meta as any).env?.VITE_GEMINI_API_KEY || ""; 
+
 // Opay Configuration
 // TEST/SANDBOX KEY provided
 export const OPAY_PUBLIC_KEY = "OPAYPUB17691774750010.6524153887502064";
