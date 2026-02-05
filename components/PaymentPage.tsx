@@ -34,12 +34,12 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
   // Timer State
   const [timeLeft, setTimeLeft] = useState(PAYMENT_TIMER_MINUTES * 60);
 
-  // AI Verification State (Image Based)
+  // Verification State (Image Based)
   const [proofImage, setProofImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [aiVerified, setAiVerified] = useState(false);
-  const [aiResponseMsg, setAiResponseMsg] = useState('');
+  const [isVerified, setIsVerified] = useState(false);
+  const [verificationMsg, setVerificationMsg] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isBlue = THEME_COLOR === 'BLUE';
@@ -165,8 +165,8 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
       const file = e.target.files[0];
       setProofImage(file);
       setImagePreview(URL.createObjectURL(file));
-      setAiVerified(false);
-      setAiResponseMsg('');
+      setIsVerified(false);
+      setVerificationMsg('');
     }
   };
 
@@ -176,8 +176,8 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
       const file = e.dataTransfer.files[0];
       setProofImage(file);
       setImagePreview(URL.createObjectURL(file));
-      setAiVerified(false);
-      setAiResponseMsg('');
+      setIsVerified(false);
+      setVerificationMsg('');
     }
   };
 
@@ -194,9 +194,9 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
     });
   };
 
-  const verifyTransactionWithGemini = async () => {
+  const confirmPaymentReceipt = async () => {
     if (!proofImage) {
-        showAlert("Proof Required", "Please upload or drop a screenshot of your payment receipt.", "error");
+        showAlert("Proof Required", "Please upload the payment receipt first.", "error");
         return;
     }
 
@@ -206,99 +206,94 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
     }
 
     setIsVerifying(true);
-    setAiResponseMsg('');
+    setVerificationMsg('');
 
     try {
         const fullBase64 = await fileToBase64(proofImage);
         
-        // Anti-Fraud: Hash the image base64 (first 100 chars) to prevent reusing exact same file
+        // Anti-Fraud: Hash the image base64
         const usedProofs = JSON.parse(localStorage.getItem('stream_used_proofs') || '[]');
         const proofHash = btoa(fullBase64.slice(0, 100) + proofImage.name + proofImage.size);
         
         if (usedProofs.includes(proofHash)) {
-             throw new Error("Fraud Detected: This specific screenshot has already been used.");
+             throw new Error("Duplicate Receipt: This receipt has already been used.");
         }
 
         const selectedBank = BANK_DETAILS[selectedBankIndex];
-        
-        // Use process.env.API_KEY explicitly
         const apiKey = process.env.API_KEY;
+        
         if (!apiKey) {
-            throw new Error("API Key is missing from configuration. Please check Vercel settings.");
+            throw new Error("Configuration Error: System is offline. Please contact support.");
         }
 
-        // Initialize Gemini Client
         const ai = new GoogleGenAI({ apiKey: apiKey });
         
-        // Prepare Image Data (Strip prefix)
+        // Get strict current time for prompt
+        const now = new Date();
+        const currentTimeString = now.toLocaleString('en-NG', { 
+           weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', 
+           hour: 'numeric', minute: 'numeric', hour12: true 
+        });
+
+        // Strip base64 prefix
         const match = fullBase64.match(/^data:(.+);base64,(.+)$/);
         const mimeType = match ? match[1] : 'image/jpeg';
         const base64Data = match ? match[2] : fullBase64.split(',')[1];
 
-        // Prepare Prompt
-        const promptText = `Analyze this payment receipt image carefully.
-        I am expecting a transfer of roughly 12,000 NGN.
-        It should be sent to "${selectedBank.bankName}" or an account ending in that bank's number if visible.
+        // STRICT Prompt with Time Validation
+        const promptText = `
+        System Timestamp: ${currentTimeString}
         
-        Task:
-        1. Look for the Amount. Is it approx 12,000?
-        2. Look for "Successful", "Success", "Sent", or "Approved".
-        3. Look for the Destination Bank or Account Name matching "${selectedBank.bankName}" or "${selectedBank.accountName}".
+        Verify this payment receipt image.
         
-        Return ONLY a JSON object with this format:
-        { "verified": boolean, "reason": "short explanation" }`;
+        MANDATORY CHECKS:
+        1. Amount: ~12,000 NGN
+        2. Status: Success / Successful / Sent
+        3. Recipient: ${selectedBank.bankName} / ${selectedBank.accountNumber}
+        4. TIME VALIDATION: The receipt time must be within the last 30 minutes of the System Timestamp above. If the date is not TODAY (${now.getDate()}), reject it.
 
-        // Call Gemini Model
+        Return ONLY JSON:
+        { "verified": boolean, "reason": "User-facing status message" }
+        `;
+
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
             contents: {
                 parts: [
-                    {
-                        inlineData: {
-                            mimeType: mimeType,
-                            data: base64Data
-                        }
-                    },
-                    {
-                        text: promptText
-                    }
+                    { inlineData: { mimeType: mimeType, data: base64Data } },
+                    { text: promptText }
                 ]
             },
-            config: {
-                responseMimeType: "application/json" 
-            }
+            config: { responseMimeType: "application/json" }
         });
 
         const resultText = response.text || "{}";
         const result = JSON.parse(resultText);
 
         if (result.verified) {
-            setAiVerified(true);
-            setAiResponseMsg("Payment Verified Successfully ✅");
+            setIsVerified(true);
+            setVerificationMsg("Payment Confirmed ✅");
             localStorage.setItem('stream_used_proofs', JSON.stringify([...usedProofs, proofHash]));
         } else {
-            // STRICT MODE: Fail if AI says no
-            setAiVerified(false);
-            setAiResponseMsg(`Verification Failed: ${result.reason}`);
+            setIsVerified(false);
+            setVerificationMsg(`Verification Failed: ${result.reason}`);
             showAlert("Verification Failed", result.reason, "error");
         }
 
     } catch (error: any) {
         console.error("Verification Error:", error);
-        
-        // STRICT MODE: No manual fallback.
-        setAiVerified(false);
-        setAiResponseMsg('Analysis Failed. Please try a clearer screenshot.');
-        showAlert("Verification Error", error.message || "Could not verify image. Please try again or contact support.", "error");
+        setIsVerified(false);
+        setVerificationMsg('Could not verify receipt. Please ensure image is clear.');
+        showAlert("System Error", error.message || "Please upload a clear receipt image.", "error");
     } finally {
         setIsVerifying(false);
     }
   };
 
   const handleTransferDone = () => {
-      // Use process.env.API_KEY explicitly to check availability
-      if (!aiVerified && process.env.API_KEY) {
-          showAlert("Verification Required", "Please upload proof and verify with AI first.", "error");
+      // Check environment key
+      if (!isVerified && process.env.API_KEY) {
+          showAlert("Confirmation Required", "Please click 'Confirm Payment' to verify your receipt first.", "error");
           return;
       }
       
@@ -467,14 +462,14 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
                          </p>
                     </div>
 
-                    {/* AI Verification Section (Drag & Drop) */}
+                    {/* Verification Section (Drag & Drop) */}
                     <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 bg-gray-50 text-center relative transition-all hover:border-blue-400"
                          onDragOver={handleDragOver}
                          onDrop={handleDrop}>
                         
                         <h4 className="font-bold text-gray-700 mb-2 flex items-center justify-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-                            AI Verification System
+                            Instant Payment Confirmation
                         </h4>
                         
                         {!imagePreview ? (
@@ -489,7 +484,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
                             <div className="relative rounded-lg overflow-hidden border border-gray-200">
                                 <img src={imagePreview} alt="Payment Proof" className="w-full h-auto max-h-48 object-cover opacity-80" />
                                 <button 
-                                    onClick={() => { setProofImage(null); setImagePreview(null); setAiVerified(false); }}
+                                    onClick={() => { setProofImage(null); setImagePreview(null); setIsVerified(false); }}
                                     className="absolute top-2 right-2 bg-black/70 text-white p-1 rounded-full hover:bg-black"
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -508,20 +503,20 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
                             className="hidden" 
                         />
 
-                        {aiResponseMsg && (
-                            <div className={`text-xs font-bold mt-3 p-2 rounded ${aiVerified ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                {aiResponseMsg}
+                        {verificationMsg && (
+                            <div className={`text-xs font-bold mt-3 p-2 rounded ${isVerified ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                {verificationMsg}
                             </div>
                         )}
 
                         <div className="mt-4">
                             <Button 
-                                onClick={verifyTransactionWithGemini}
+                                onClick={confirmPaymentReceipt}
                                 fullWidth 
                                 className={`py-3 text-sm !bg-gray-800 hover:!bg-black`}
-                                disabled={isVerifying || aiVerified || timeLeft <= 0 || !proofImage}
+                                disabled={isVerifying || isVerified || timeLeft <= 0 || !proofImage}
                             >
-                                {isVerifying ? 'Analyzing Receipt...' : aiVerified ? 'Verified Successfully' : 'Verify Proof with AI'}
+                                {isVerifying ? 'Verifying...' : isVerified ? 'Confirmed' : 'Confirm Payment'}
                             </Button>
                         </div>
                     </div>
@@ -529,10 +524,10 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
                     <Button 
                         onClick={handleTransferDone} 
                         fullWidth 
-                        className={`py-4 text-lg transition-all duration-300 ${!aiVerified ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
-                        disabled={!aiVerified || timeLeft <= 0}
+                        className={`py-4 text-lg transition-all duration-300 ${!isVerified ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
+                        disabled={!isVerified || timeLeft <= 0}
                     >
-                        {aiVerified ? 'I Have Made The Transfer' : 'Verify Payment to Unlock'}
+                        {isVerified ? 'I Have Made The Transfer' : 'Verify Receipt to Unlock'}
                     </Button>
 
                     {/* Contact Admin Link */}
