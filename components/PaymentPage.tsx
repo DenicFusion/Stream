@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from './Button';
 import { UserData } from '../types';
-import { PAYMENT_MODE, OPAY_PUBLIC_KEY, OPAY_MERCHANT_ID, OPAY_API_URL, BANK_DETAILS, THEME_COLOR, PAYMENT_TIMER_MINUTES, SUPPORT_CONTACT, GEMINI_API_KEY } from '../config';
+import { PAYMENT_MODE, OPAY_PUBLIC_KEY, OPAY_MERCHANT_ID, OPAY_API_URL, BANK_DETAILS, THEME_COLOR, PAYMENT_TIMER_MINUTES, SUPPORT_CONTACT } from '../config';
 import { CustomAlert } from './CustomAlert';
 import { GoogleGenAI } from "@google/genai";
 
@@ -221,12 +221,14 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
 
         const selectedBank = BANK_DETAILS[selectedBankIndex];
         
-        if (!GEMINI_API_KEY) {
-            throw new Error("System Error: Gemini API Key Missing.");
+        // Use process.env.API_KEY explicitly
+        const apiKey = process.env.API_KEY;
+        if (!apiKey) {
+            throw new Error("System Error: API Key Missing.");
         }
 
         // Initialize Gemini Client
-        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+        const ai = new GoogleGenAI({ apiKey: apiKey });
         
         // Prepare Image Data (Strip prefix)
         const match = fullBase64.match(/^data:(.+);base64,(.+)$/);
@@ -294,7 +296,8 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
   };
 
   const handleTransferDone = () => {
-      if (!aiVerified && GEMINI_API_KEY) {
+      // Use process.env.API_KEY explicitly to check availability
+      if (!aiVerified && process.env.API_KEY) {
           showAlert("Verification Required", "Please upload proof and verify with AI first.", "error");
           return;
       }
