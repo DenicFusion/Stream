@@ -20,7 +20,7 @@ export const ContactFab: React.FC = () => {
       onClick={handleClick}
       className={`fixed bottom-8 left-8 z-50 p-4 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 active:scale-95 flex items-center justify-center group ${
         isBlue 
-        ? 'bg-gradient-to-br from-sky-500 to-blue-600 shadow-sky-500/40' 
+        ? 'bg-gradient-to-br from-teal-500 to-cyan-600 shadow-teal-500/40' 
         : 'bg-gradient-to-br from-stream-green to-emerald-600 shadow-stream-green/40'
       }`}
       aria-label="Contact Admin"

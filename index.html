@@ -23,7 +23,7 @@
     <!-- SEO Meta Tags -->
     <meta name="description" content="Join Stream Africa, the premier digital streaming platform. Discover a world where you earn by streaming music, videos, and live content. The future of online streaming is here." />
     <meta name="keywords" content="Stream, Streaming, Streaming Platform, Online Streaming, Stream Africa, Live Streaming, Music Streaming, Video Streaming, Earn Money Streaming, Digital Streaming Service, Best Streaming App" />
-    <meta name="theme-color" content="#0f172a" />
+    <meta name="theme-color" content="#042f2e" />
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
@@ -93,15 +93,16 @@
     <script type="module">
       import { THEME_COLOR } from './config.ts';
       
+      // Update Colors to match the Dark Teal & White aesthetic
       const themeColors = {
         BLUE: {
-          primary: '#0ea5e9', // Sky 500
-          accent: '#06b6d4',  // Cyan 500
-          glow: 'rgba(14, 165, 233, 0.3)',
+          primary: '#ffffff', // White buttons (as seen in screenshot)
+          accent: '#2dd4bf',  // Teal 400 (Accents)
+          glow: 'rgba(255, 255, 255, 0.2)',
         },
-        GREEN: {
-          primary: '#10b981', // Emerald 500
-          accent: '#34d399',  // Accent
+        GREEN: { // Fallback, though we are using BLUE as default
+          primary: '#10b981', 
+          accent: '#34d399', 
           glow: 'rgba(16, 185, 129, 0.3)',
         }
       };
@@ -113,11 +114,11 @@
           extend: {
             colors: {
               stream: {
-                dark: '#0f172a',
-                light: '#f8fafc',
-                green: selected.primary, // Keeping key name for compatibility
+                dark: '#042f2e', // Deep Teal Background (Tailwind Teal 950)
+                light: '#f0fdfa', // Light Teal/White
+                green: selected.primary, // This is now WHITE in the BLUE theme
                 accent: selected.accent,
-                card: '#1e293b'
+                card: '#115e59' // Teal 800 for cards
               }
             },
             fontFamily: {
@@ -204,8 +205,8 @@
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
       body {
         font-family: 'Inter', sans-serif;
-        background-color: #0f172a;
-        color: #f8fafc;
+        background-color: #042f2e; /* Deep Teal */
+        color: #f0fdfa;
       }
       /* Disable default browser password reveal eye icons */
       input::-ms-reveal,

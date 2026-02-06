@@ -1,6 +1,6 @@
 // GLOBAL CONFIGURATION
 
-// Theme Color: 'BLUE' (Cyan/Blue) or 'GREEN' (Emerald/Green)
+// Theme Color: 'BLUE' (Deep Teal & White)
 export const THEME_COLOR: 'BLUE' | 'GREEN' = 'BLUE';
 
 // Payment Modes: 'TRUE' (Paystack), 'FALSE' (Transfer), 'NEUTRAL' (Transfer + Opay)
