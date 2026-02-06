@@ -327,7 +327,8 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
       />
       
       <div className="max-w-lg w-full bg-white text-gray-800 rounded-2xl shadow-2xl overflow-hidden">
-        <div className="bg-stream-green p-6 text-center">
+        {/* HEADER: Updated to stream-dark to ensure white text is visible */}
+        <div className="bg-stream-dark p-6 text-center">
             <h2 className="text-2xl font-bold text-white">Complete Activation</h2>
             <p className="text-white/80">Unlock Lifetime Access</p>
         </div>
@@ -335,7 +336,8 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
         <div className="p-6">
             <div className="flex justify-between items-center mb-6 bg-gray-50 p-4 rounded-lg">
                 <span className="text-gray-500 font-medium">Amount to Pay</span>
-                <span className="text-2xl font-extrabold text-stream-green">₦{AMOUNT_NAIRA.toLocaleString()}</span>
+                {/* AMOUNT: Fixed visibility by using text-teal-700 instead of white */}
+                <span className="text-2xl font-extrabold text-teal-700">₦{AMOUNT_NAIRA.toLocaleString()}</span>
             </div>
 
             {/* Method Toggles */}
@@ -343,7 +345,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
                 {showPaystack && (
                     <button 
                         onClick={() => setActiveTab('CARD')}
-                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${activeTab === 'CARD' ? 'bg-white shadow-sm text-stream-green' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${activeTab === 'CARD' ? 'bg-white shadow-sm text-teal-700' : 'text-gray-500 hover:text-gray-700'}`}
                     >
                         Card / Paystack
                     </button>
@@ -351,7 +353,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
                 {showTransfer && (
                     <button 
                         onClick={() => setActiveTab('TRANSFER')}
-                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${activeTab === 'TRANSFER' ? 'bg-white shadow-sm text-stream-green' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${activeTab === 'TRANSFER' ? 'bg-white shadow-sm text-teal-700' : 'text-gray-500 hover:text-gray-700'}`}
                     >
                         Bank Transfer
                     </button>
@@ -359,7 +361,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
                 {showOpay && (
                     <button 
                         onClick={() => setActiveTab('OPAY')}
-                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${activeTab === 'OPAY' ? 'bg-white shadow-sm text-stream-green' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`flex-1 py-2 text-sm font-bold rounded-md transition-all ${activeTab === 'OPAY' ? 'bg-white shadow-sm text-teal-700' : 'text-gray-500 hover:text-gray-700'}`}
                     >
                         Opay
                     </button>
@@ -372,6 +374,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
                     <p className="text-sm text-center text-gray-500">
                         Secure instant payment via Debit Card, USSD, or Bank Transfer via Paystack.
                     </p>
+                    {/* Button text is black by default now, so this is fine */}
                     <Button onClick={handlePaystack} fullWidth className="py-4 text-lg">
                         Pay ₦{AMOUNT_NAIRA.toLocaleString()} Now
                     </Button>
@@ -412,13 +415,13 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
                                 onClick={() => setSelectedBankIndex(index)}
                                 className={`p-4 rounded-xl relative cursor-pointer border-2 transition-all ${
                                     selectedBankIndex === index 
-                                    ? `border-stream-green bg-stream-green/5 shadow-md` 
+                                    ? `border-teal-500 bg-teal-50 shadow-md` 
                                     : 'border-gray-200 bg-gray-50 hover:border-gray-300'
                                 }`}
                             >
                                 {selectedBankIndex === index && (
                                     <div className="absolute top-3 right-3">
-                                        <div className="bg-stream-green text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded-full flex items-center gap-1">
+                                        <div className="bg-teal-600 text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded-full flex items-center gap-1">
                                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
                                             Selected
                                         </div>
@@ -431,7 +434,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
                                 <div className="mb-2">
                                     <p className="text-xs text-gray-500 uppercase tracking-tight">Account Number</p>
                                     <div className="flex items-center gap-2">
-                                        <p className={`font-mono text-xl font-bold ${selectedBankIndex === index ? 'text-stream-green' : 'text-gray-700'} tracking-wider`}>{bank.accountNumber}</p>
+                                        <p className={`font-mono text-xl font-bold ${selectedBankIndex === index ? 'text-teal-700' : 'text-gray-700'} tracking-wider`}>{bank.accountNumber}</p>
                                         <button 
                                             onClick={(e) => { 
                                                 e.stopPropagation(); 
@@ -441,7 +444,7 @@ export const PaymentPage: React.FC<PaymentPageProps> = ({ userData, onSuccess, o
                                             className="p-1.5 bg-white rounded-md shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors"
                                         >
                                             {copied === `acc-${index}` ? (
-                                                <svg className="w-4 h-4 text-stream-green" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
+                                                <svg className="w-4 h-4 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
                                             ) : (
                                                 <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
                                             )}
